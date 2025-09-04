@@ -19,6 +19,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -33,11 +34,19 @@ import com.jobtracker.ui.JobsViewModel
 fun JobsListScreen(
 	onAddJob: () -> Unit,
 	onEditJob: (Long) -> Unit,
+	onOpenSummary: () -> Unit,
+	onExportCsv: (List<JobEntity>) -> Unit,
 	viewModel: JobsViewModel = viewModel()
 ) {
 	val state by viewModel.uiState.collectAsState()
 
 	Scaffold(
+		topBar = {
+			TopAppBar(title = { Text("JobTracker") }, actions = {
+				IconButton(onClick = onOpenSummary) { Text("Summary") }
+				IconButton(onClick = { onExportCsv(state.jobs) }) { Text("Share") }
+			})
+		},
 		floatingActionButton = {
 			FloatingActionButton(onClick = onAddJob) {
 				Icon(Icons.Default.Add, contentDescription = "Add Job")
@@ -45,11 +54,6 @@ fun JobsListScreen(
 		}
 	) { padding ->
 		Column(Modifier.fillMaxSize().padding(padding)) {
-			Text(
-				text = "Jobs",
-				style = MaterialTheme.typography.headlineSmall,
-				modifier = Modifier.padding(16.dp)
-			)
 			LazyColumn(Modifier.fillMaxSize()) {
 				items(state.jobs, key = { it.id }) { job ->
 					JobRow(job = job, onClick = { onEditJob(job.id) }, onDelete = { viewModel.delete(job.id) })

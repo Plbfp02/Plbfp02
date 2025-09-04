@@ -37,7 +37,6 @@ fun EditJobScreen(
 
 	LaunchedEffect(jobId) {
 		if (jobId != null && jobId > 0) {
-			viewModel.addOrUpdate // no-op to keep reference
 			val existing = viewModel.repositoryRef().getJob(jobId)
 			if (existing != null) {
 				client.value = existing.clientName

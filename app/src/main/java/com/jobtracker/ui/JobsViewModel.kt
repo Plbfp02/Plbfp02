@@ -6,12 +6,15 @@ import androidx.lifecycle.viewModelScope
 import com.jobtracker.data.JobEntity
 import com.jobtracker.data.JobRepository
 import com.jobtracker.di.AppModule
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 class JobsViewModel(application: Application) : AndroidViewModel(application) {
 	private val repository: JobRepository = AppModule.provideRepository(application)
@@ -29,7 +32,7 @@ class JobsViewModel(application: Application) : AndroidViewModel(application) {
 	fun addOrUpdate(
 		id: Long = 0L,
 		client: String,
-		date: java.time.LocalDate,
+		date: LocalDate,
 		hours: Double,
 		rate: Double,
 		paid: Boolean,
@@ -53,4 +56,13 @@ class JobsViewModel(application: Application) : AndroidViewModel(application) {
 	fun delete(id: Long) {
 		viewModelScope.launch { repository.deleteById(id) }
 	}
+
+	fun monthTotals(start: LocalDate, end: LocalDate): Flow<Pair<Double, Double>> =
+		repository.observeHoursBetween(start, end)
+			.combine(repository.observeEarningsBetween(start, end)) { hours, earnings ->
+				hours to earnings
+			}
+
+	// Expose repository for one-off suspend loads inside LaunchedEffect
+	fun repositoryRef(): JobRepository = repository
 }
